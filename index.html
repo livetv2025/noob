@@ -53,10 +53,8 @@
   <div id="grid-container" class="grid-container"></div>
 
   <script>
-    // Replace this with your playlist URL
-    const playlistUrl = 'https://kailivetv.vercel.app/sliv.m3u';
+    const playlistUrl = 'https://example.com/your-playlist.m3u';
 
-    // Load and parse M3U playlist
     async function loadChannels() {
       try {
         const response = await fetch(playlistUrl);
@@ -69,7 +67,6 @@
       }
     }
 
-    // Parse M3U playlist
     function parseM3U(m3uContent) {
       const lines = m3uContent.split('\n');
       const channels = [];
@@ -90,7 +87,6 @@
       return channels;
     }
 
-    // Display channels in a grid view
     function displayChannels(channels) {
       const gridContainer = document.getElementById('grid-container');
       gridContainer.innerHTML = '';
@@ -109,12 +105,10 @@
       });
     }
 
-    // Open external player.html with the channel URL
     function openPlayer(url, name) {
       window.open(`player.html?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`, '_blank');
     }
 
-    // Load and display channels on page load
     loadChannels();
   </script>
 </body>
