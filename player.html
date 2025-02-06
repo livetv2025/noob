@@ -15,7 +15,7 @@
     h1 {
       margin: 20px;
     }
-    #hls-player {
+    #shaka-player {
       width: 80%;
       max-width: 800px;
       height: 450px;
@@ -27,9 +27,9 @@
 </head>
 <body>
   <h1 id="channel-title">Now Playing</h1>
-  <video id="hls-player" controls></video>
+  <video id="shaka-player" controls></video>
 
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.6/shaka-player.compiled.js"></script>
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const channelUrl = urlParams.get('url');
@@ -40,16 +40,14 @@
     }
 
     if (channelUrl) {
-      const video = document.getElementById('hls-player');
+      const video = document.getElementById('shaka-player');
+      const player = new shaka.Player(video);
 
-      if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(channelUrl);
-        hls.attachMedia(video);
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = channelUrl;
-      }
-      video.play();
+      player.load(channelUrl).then(() => {
+        console.log(`Playing: ${channelName}`);
+      }).catch(err => {
+        console.error('Error loading video:', err);
+      });
     }
   </script>
 </body>
