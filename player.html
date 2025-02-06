@@ -15,21 +15,27 @@
     h1 {
       margin: 20px;
     }
-    #shaka-player {
+    #shaka-player-container {
       width: 80%;
       max-width: 800px;
+      margin: 20px auto;
+    }
+    video {
+      width: 100%;
       height: 450px;
       background-color: black;
-      margin: 20px auto;
-      display: block;
     }
   </style>
 </head>
 <body>
   <h1 id="channel-title">Now Playing</h1>
-  <video id="shaka-player" controls></video>
+  <div id="shaka-player-container">
+    <video id="shaka-player" controls></video>
+  </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.6/shaka-player.compiled.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.6/shaka-player.ui.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.6/controls.min.css">
+
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const channelUrl = urlParams.get('url');
@@ -39,15 +45,23 @@
       document.getElementById('channel-title').textContent = `Now Playing: ${channelName}`;
     }
 
-    if (channelUrl) {
+    async function initPlayer() {
       const video = document.getElementById('shaka-player');
       const player = new shaka.Player(video);
 
-      player.load(channelUrl).then(() => {
-        console.log(`Playing: ${channelName}`);
-      }).catch(err => {
-        console.error('Error loading video:', err);
-      });
+      const ui = new shaka.ui.Overlay(player, document.getElementById('shaka-player-container'), video);
+      ui.getControls();
+
+      try {
+        await player.load(channelUrl);
+        console.log('The video has successfully loaded!');
+      } catch (error) {
+        console.error('Error loading the video:', error);
+      }
+    }
+
+    if (channelUrl) {
+      initPlayer();
     }
   </script>
 </body>
