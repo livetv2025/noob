@@ -2,135 +2,120 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content=
-  "width=device-width, initial-scale=1.0">
-  <title>Sonyliv BY DRMLIVE</title>
-  <link rel="stylesheet" href="https://drmlive.au/sliv/player.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live TV Webpage</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #000;
-            color: #fff;
-        }
-        #player {
-            position: absolute;
-            width: 100% !important;
-            height: 100% !important;
-        }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #121212;
+      color: white;
+      text-align: center;
+    }
+    h1 {
+      margin: 20px;
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .channel-card {
+      background: #1E1E1E;
+      width: 200px;
+      height: 200px;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .channel-card:hover {
+      transform: scale(1.05);
+    }
+    .channel-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 6px;
+    }
+    .channel-card p {
+      margin-top: 8px;
+      color: #ccc;
+    }
   </style>
 </head>
 <body>
-  <div id="player"></div>
-  <script src=
-  "https://content.jwplatform.com/libraries/KB5zFt7A.js" type=
-  "03c89911ec8e3180ecaa6019-text/javascript"></script> 
-  <script type="03c89911ec8e3180ecaa6019-text/javascript">
+  <h1>Live TV Channels</h1>
+  <div id="grid-container" class="grid-container"></div>
 
-  // Function to intercept network requests and modify URLs
-  function interceptNetworkRequests(token) {
-    const originalOpen = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function(method, url) {
-        if (url.startsWith('https://tataplaymt.slivcdn.com/')) {
-            url = url.replace('tataplaymt.slivcdn.com/hls/live', 'sliv.drmlive.in');
+  <script>
+    // Replace this with your playlist URL
+    const playlistUrl = 'https://kailivetv.vercel.app/sliv.m3u';
+
+    // Load and parse M3U playlist
+    async function loadChannels() {
+      try {
+        const response = await fetch(playlistUrl);
+        const playlist = await response.text();
+        const channels = parseM3U(playlist);
+
+        displayChannels(channels);
+      } catch (error) {
+        console.error('Failed to load playlist:', error);
+      }
+    }
+
+    // Parse M3U playlist
+    function parseM3U(m3uContent) {
+      const lines = m3uContent.split('\n');
+      const channels = [];
+      let currentChannel = {};
+
+      lines.forEach(line => {
+        if (line.startsWith('#EXTINF')) {
+          const [, metadata] = line.split('#EXTINF:');
+          const name = metadata.split(',')[1]?.trim();
+          currentChannel = { name };
+        } else if (line.trim() && !line.startsWith('#')) {
+          currentChannel.url = line.trim();
+          channels.push(currentChannel);
+          currentChannel = {};
         }
-        return originalOpen.apply(this, arguments);
-    };
-  }
+      });
 
-  // Function to setup JWPlayer
-  function setupPlayer(videoUrl, widevineLicenseUrl) {
-    const playerInstance = jwplayer("player").setup({
-        controls: true,
-        sharing: true,
-        displaytitle: true,
-        autoplay: true,
-        displaydescription: true,
-        abouttext: "Video Player By DRMLIVE",
-        aboutlink: "https://t.me/+_RiCu2cz5TkxZmU1",
+      return channels;
+    }
 
-        skin: {
-            name: "netflix"
-        },
+    // Display channels in a grid view
+    function displayChannels(channels) {
+      const gridContainer = document.getElementById('grid-container');
+      gridContainer.innerHTML = '';
 
-        captions: {
-            color: "#FFF",
-            fontSize: 14,
-            backgroundOpacity: 0,
-            edgeStyle: "raised"
-        },
-
-        playlist: [
-            {
-                title: "Sony Aath",
-                description: "You're Watching",
-                sources: [
-                    {
-                        file: videoUrl,
-                        type: "hls",
-                        label: "1080p",
-                        default: true
-                    }
-                ]
-            }
-        ],
-        advertising: {
-            client: "vast",
-            schedule: [
-                {
-                    offset: "pre",
-                    tag: ""
-                }
-            ]
+      channels.forEach(channel => {
+        if (channel.url) {
+          const card = document.createElement('div');
+          card.className = 'channel-card';
+          card.innerHTML = `
+            <img src="https://via.placeholder.com/200?text=${encodeURIComponent(channel.name)}" alt="${channel.name}">
+            <p>${channel.name}</p>
+          `;
+          card.addEventListener('click', () => openPlayer(channel.url, channel.name));
+          gridContainer.appendChild(card);
         }
-    });
+      });
+    }
 
-    playerInstance.on("ready", function () {
-        const playerContainer = playerInstance.getContainer();
-        const buttonContainer = playerContainer.querySelector(".jw-button-container");
-        const spacer = buttonContainer.querySelector(".jw-spacer");
-        const timeSlider = playerContainer.querySelector(".jw-slider-time");
-        buttonContainer.replaceChild(timeSlider, spacer);
+    // Open external player.html with the channel URL
+    function openPlayer(url, name) {
+      window.open(`player.html?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`, '_blank');
+    }
 
-        playerInstance.on("adBlock", () => {
-            const modal = document.querySelector("div.modal");
-            modal.style.display = "flex";
-
-            document.getElementById("close").addEventListener("click", () => location.reload());
-        });
-
-        const rewindContainer = playerContainer.querySelector(".jw-display-icon-rewind");
-        const forwardContainer = rewindContainer.cloneNode(true);
-        const forwardDisplayButton = forwardContainer.querySelector(".jw-icon-rewind");
-        forwardDisplayButton.style.transform = "scaleX(-1)";
-        forwardDisplayButton.ariaLabel = "Forward 10 Seconds";
-        const nextContainer = playerContainer.querySelector(".jw-display-icon-next");
-        nextContainer.parentNode.insertBefore(forwardContainer, nextContainer);
-
-        playerContainer.querySelector(".jw-display-icon-next").style.display = "none";
-        const rewindControlBarButton = buttonContainer.querySelector(".jw-icon-rewind");
-        const forwardControlBarButton = rewindControlBarButton.cloneNode(true);
-        forwardControlBarButton.style.transform = "scaleX(-1)";
-        forwardControlBarButton.ariaLabel = "Forward 10 Seconds";
-        rewindControlBarButton.parentNode.insertBefore(forwardControlBarButton, rewindControlBarButton.nextElementSibling);
-
-        [forwardDisplayButton, forwardControlBarButton].forEach((button) => {
-            button.onclick = () => {
-                playerInstance.seek(playerInstance.getPosition() + 10);
-            };
-        });
-    });
-  }
-
-  // Intercept network requests
-  interceptNetworkRequests();
-
-  // Setup player with the video URL
-  setupPlayer("https://live.drmlive-02.workers.dev/sliv/aath.m3u8", null);
-  </script> 
-  <script src=
-  "https://drmlive.au/cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js"
-  data-cf-settings="03c89911ec8e3180ecaa6019-|49" defer></script>
+    // Load and display channels on page load
+    loadChannels();
+  </script>
 </body>
 </html>
