@@ -33,8 +33,8 @@
     <video id="shaka-player" controls></video>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.6/shaka-player.ui.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.6/controls.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.12.6/shaka-player.ui.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.12.6/controls.min.css">
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
@@ -52,17 +52,39 @@
       const ui = new shaka.ui.Overlay(player, document.getElementById('shaka-player-container'), video);
       ui.getControls();
 
+      // Player event listeners for errors
+      player.addEventListener('error', onErrorEvent);
+
       try {
-        await player.load(channelUrl);
-        console.log('The video has successfully loaded!');
+        if (channelUrl) {
+          await player.load(channelUrl);
+          console.log('The video has successfully loaded!');
+        } else {
+          console.error('No channel URL found');
+        }
       } catch (error) {
-        console.error('Error loading the video:', error);
+        onError(error);
       }
     }
 
-    if (channelUrl) {
-      initPlayer();
+    function onErrorEvent(event) {
+      onError(event.detail);
     }
+
+    function onError(error) {
+      console.error('Error loading the video:', error);
+      alert('Failed to load the video. Please check the stream URL.');
+    }
+
+    // Initialize player when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      shaka.polyfill.installAll();
+      if (shaka.Player.isBrowserSupported()) {
+        initPlayer();
+      } else {
+        alert('Shaka Player is not supported on this browser.');
+      }
+    });
   </script>
 </body>
 </html>
