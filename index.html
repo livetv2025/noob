@@ -24,7 +24,7 @@
     .channel-card {
       background: #1E1E1E;
       width: 200px;
-      height: 200px;
+      height: 250px;
       padding: 10px;
       border-radius: 8px;
       cursor: pointer;
@@ -39,8 +39,9 @@
     }
     .channel-card img {
       width: 100%;
-      height: auto;
+      height: 150px;
       border-radius: 6px;
+      object-fit: cover;
     }
     .channel-card p {
       margin-top: 8px;
@@ -53,14 +54,13 @@
   <div id="grid-container" class="grid-container"></div>
 
   <script>
-    const playlistUrl = 'https://kailivetv.vercel.app/sliv.m3u';
+    const playlistUrl = 'https://kailivetv.vercel.app/sliv.m3u'; // Update this URL
 
     async function loadChannels() {
       try {
         const response = await fetch(playlistUrl);
         const playlist = await response.text();
         const channels = parseM3U(playlist);
-
         displayChannels(channels);
       } catch (error) {
         console.error('Failed to load playlist:', error);
@@ -76,7 +76,9 @@
         if (line.startsWith('#EXTINF')) {
           const [, metadata] = line.split('#EXTINF:');
           const name = metadata.split(',')[1]?.trim();
-          currentChannel = { name };
+          const logoMatch = metadata.match(/tvg-logo="([^"]+)"/);
+          const logo = logoMatch ? logoMatch[1] : 'https://via.placeholder.com/200?text=No+Logo';
+          currentChannel = { name, logo };
         } else if (line.trim() && !line.startsWith('#')) {
           currentChannel.url = line.trim();
           channels.push(currentChannel);
@@ -96,7 +98,7 @@
           const card = document.createElement('div');
           card.className = 'channel-card';
           card.innerHTML = `
-            <img src="https://via.placeholder.com/200?text=${encodeURIComponent(channel.name)}" alt="${channel.name}">
+            <img src="${channel.logo}" alt="${channel.name}">
             <p>${channel.name}</p>
           `;
           card.addEventListener('click', () => openPlayer(channel.url, channel.name));
