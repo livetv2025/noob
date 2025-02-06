@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Player - Live TV</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #121212;
+      color: white;
+      text-align: center;
+    }
+    h1 {
+      margin: 20px;
+    }
+    #hls-player {
+      width: 80%;
+      max-width: 800px;
+      height: 450px;
+      background-color: black;
+      margin: 20px auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="channel-title">Now Playing</h1>
+  <video id="hls-player" controls></video>
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const channelUrl = urlParams.get('url');
+    const channelName = urlParams.get('name');
+
+    if (channelName) {
+      document.getElementById('channel-title').textContent = `Now Playing: ${channelName}`;
+    }
+
+    if (channelUrl) {
+      const video = document.getElementById('hls-player');
+
+      if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(channelUrl);
+        hls.attachMedia(video);
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = channelUrl;
+      }
+      video.play();
+    }
+  </script>
+</body>
+</html>
